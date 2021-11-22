@@ -229,10 +229,11 @@ def handle_open_autoclave(arm: qarm, is_autoclave_open: bool, cage_id: int) -> b
     return should_open
 
 
-def handle_move_effector(arm: qarm, params: list, cage_id: int) -> None:
+def handle_move_effector(arm: qarm, is_autoclave_open: bool, has_cage: bool, was_cage_delivered: bool, cage_id: int) -> None:
     '''
     Input:
         arm: The QArm instance
+        is_autoclave_open: Status of autoclave bin
         has_cage: Status of cage aquisition
         was_cage_delivered: Status of the cage delivery
         cage_id: The id of the cage
@@ -240,11 +241,6 @@ def handle_move_effector(arm: qarm, params: list, cage_id: int) -> None:
     Moves the arm effector to the appropriate position to pickup/drop off the cage
     according to its status
     '''
-
-    is_autoclave_open: bool = params[0]
-    has_cage: bool = params[1]
-    was_cage_delivered: bool = params[2]
-
 
     if was_cage_delivered and not is_autoclave_open: # Was the cage delivered?
         face_autoclave(arm, cage_id)
@@ -309,7 +305,7 @@ def handle_input(arm: qarm) -> None:
             time.sleep(2)
             
         elif arm.emg_right() >= 1 and arm.emg_left() < 1: # Should the effector move to position
-            handle_move_effector(arm, [is_autoclave_open, has_cage, was_cage_delivered], cage_id)
+            handle_move_effector(arm, is_autoclave_open, has_cage, was_cage_delivered, cage_id)
             time.sleep(2)
             
         elif arm.emg_left() >= 1 and arm.emg_right() < 1: # Should the gripper hold/release the cage

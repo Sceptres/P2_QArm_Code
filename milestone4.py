@@ -65,6 +65,19 @@ def control_gripper(arm: qarm, should_close: bool) -> None:
     arm.control_gripper(40 if should_close else -40)
 
 
+def is_at_pos(arm: qarm, pos: list):
+    '''
+    Input:
+        arm: The QArm instance
+        pos: The position to check
+
+    Return: True -> If the arm is at the position pos
+            False -> If the arm is not at the position pos
+    '''
+
+    return list(arm.effector_position()) == pos
+
+
 def generate_cage_id(arm: qarm, collected_cages: list) -> int:
     '''
     Input:
@@ -240,7 +253,7 @@ def handle_move_effector(arm: qarm, params: list, cage_id: int) -> None:
     elif not has_cage: # Is the cage not collected yet?
         # Move to pickup
         move_effector(arm, get_pickup_pos(cage_id)) 
-    elif list(arm.effector_position()) != get_autoclave_pos(cage_id): # Was the cage collected?
+    elif is_at_pos(arm, get_autoclave_pos(cage_id)): # Was the cage collected?
         # Move to drop off
         move_effector(arm, get_home_pos())
         time.sleep(1)
@@ -305,11 +318,10 @@ def handle_input(arm: qarm) -> None:
 
         if was_cage_delivered: # Was the cage delivered
             # Record newly processed cages 
-            if cage_id not in collected_cages: 
-                collected_cages.append(cage_id)
+            if cage_id not in collected_cages: collected_cages.append(cage_id)
 
             # Spawn the new cage when arm is back at home
-            if list(arm.effector_position()) == get_home_pos():
+            if is_at_pos(arm, get_home_pos()):
                 cage_id = generate_cage_id(arm, collected_cages)
                 arm.spawn_cage(cage_id)
 
@@ -326,36 +338,3 @@ def run(arm: qarm):
 
     arm.home()
     handle_input(arm)
-
-
-#def pickup(arm: qarm, cage_id: int) -> None:
-#    move_effector(arm, get_pickup_pos(cage_id))
-#    time.sleep(1)
-#    control_gripper(arm, True)
-#    time.sleep(1)
-#    move_effector(arm, get_home_pos())
-#    time.sleep(1)
-#    face_autoclave(arm, cage_id)
-#    time.sleep(1)
-#    control_autoclave_bin(arm, cage_id, True)
-#    time.sleep(1)
-
-#def drop_off(arm: qarm, cage_id: int) -> None:
-#    move_effector(arm, get_autoclave_pos(cage_id))
-#    time.sleep(1)
-#    control_gripper(arm, False)
-#    time.sleep(1)
-#    face_autoclave(arm, cage_id)
-#    time.sleep(1)
-#    move_effector(arm, get_home_pos())
-#    time.sleep(1)
-#    control_autoclave_bin(arm, cage_id, False)
-#    time.sleep(1)
-
-#for i in range(1, 7):
-#        cage_id = i
-#        arm.spawn_cage(cage_id)
-#        time.sleep(1)
-
-#        pickup(arm, cage_id)
-#        drop_off(arm, cage_id)

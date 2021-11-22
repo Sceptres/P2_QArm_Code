@@ -218,6 +218,7 @@ def handle_open_autoclave(arm: qarm, is_autoclave_open: bool, cage_id: int) -> b
             True -> If autoclave has been opened
             False -> If autoclave has been closed
     '''
+    if cage_id >= 1 and cage_id <= 3: return is_autoclave_open
     
     # Action to take according to current autoclave status
     should_open = not is_autoclave_open
@@ -246,10 +247,10 @@ def handle_move_effector(arm: qarm, is_autoclave_open: bool, has_cage: bool, was
         face_autoclave(arm, cage_id)
         time.sleep(1)
         move_effector(arm, get_home_pos())
-    elif not has_cage: # Is the cage not collected yet?
+    elif not has_cage and not was_cage_delivered: # Is the cage not collected yet?
         # Move to pickup
         move_effector(arm, get_pickup_pos(cage_id)) 
-    elif is_at_pos(arm, get_autoclave_pos(cage_id)): # Was the cage collected?
+    elif not is_at_pos(arm, get_autoclave_pos(cage_id)): # Was the cage collected?
         # Move to drop off
         move_effector(arm, get_home_pos())
         time.sleep(1)
@@ -283,7 +284,7 @@ def handle_input(arm: qarm) -> None:
 
     collected_cages = []            # The collected cages throughout the program
     
-    is_autoclave_open: bool = False # Autoclave status
+    is_autoclave_open: bool = False # Autoclave bin status
     has_cage: bool = False          # Cage acquisition status
     was_cage_delivered = False      # Cage delivery status
 

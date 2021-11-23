@@ -78,6 +78,31 @@ def is_at_pos(arm: qarm, pos: list):
     return list(arm.effector_position()) == pos
 
 
+def is_small(cage_id: int) -> bool:
+    '''
+    Input:
+        arm: The QArm instance
+        cage_id: The id of the cage
+
+    Return: True -> If the cage has an id in the range [1, 3], ie small size
+            False otherwise
+    '''
+    return cage_id >= 1 and cage_id <= 3
+
+
+def is_large(cage_id: int) -> bool:
+    '''
+    Input:
+        arm: The QArm instance
+        cage_id: The id of the cage
+
+    Return: True -> If the cage has an id in the range [4, 6], ie large size
+            False otherwise
+    '''
+    
+    return cage_id >= 4 and cage_id <= 6
+
+
 def generate_cage_id(arm: qarm, collected_cages: list) -> int:
     '''
     Input:
@@ -109,9 +134,9 @@ def get_pickup_pos(cage_id: int) -> list:
 
     size = None
 
-    if cage_id >= 1 and cage_id <= 3: # Is the cage small?
+    if is_small(cage_id): # Is the cage small?
         size = "Small"
-    elif cage_id >= 4 and cage_id <= 6: # Is the cage large?
+    elif is_large(cage_id): # Is the cage large?
         size = "Large"
     
     switcher = {
@@ -160,7 +185,7 @@ def control_autoclave_bin(arm: qarm, cage_id: int, should_open: bool) -> None:
     '''
     
     # Quit if small cage
-    if not (cage_id <= 6 and cage_id >= 4): return None 
+    if is_small(cage_id): return None 
     else:
         # Get appropriate autoclave
         autoclave = get_autoclave(arm, cage_id)
@@ -218,7 +243,7 @@ def handle_open_autoclave(arm: qarm, is_autoclave_open: bool, cage_id: int) -> b
             True -> If autoclave has been opened
             False -> If autoclave has been closed
     '''
-    if cage_id >= 1 and cage_id <= 3: return is_autoclave_open
+    if is_small(cage_id): return is_autoclave_open
     
     # Action to take according to current autoclave status
     should_open = not is_autoclave_open
@@ -251,6 +276,9 @@ def handle_move_effector(arm: qarm, is_autoclave_open: bool, has_cage: bool, was
         # Move to pickup
         move_effector(arm, get_pickup_pos(cage_id)) 
     elif not is_at_pos(arm, get_autoclave_pos(cage_id)): # Was the cage collected?
+        
+        if is_large(cage_id) and not is_autoclave_open: return None
+        
         # Move to drop off
         move_effector(arm, get_home_pos())
         time.sleep(1)
@@ -293,7 +321,7 @@ def handle_input(arm: qarm) -> None:
     arm.spawn_cage(cage_id)
 
     # Perform until all 6 cages have been processed
-    while len(collected_cages) < 6:
+    while cage_id != -1:
 
         # Update cade delivery status
         was_cage_delivered = list(arm.effector_position()) == get_autoclave_pos(cage_id) and not has_cage

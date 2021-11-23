@@ -38,7 +38,8 @@ How to control the QArm
 2. Flex only the left arm to control the gripper
 3. Flex both to control the autoclave bins (Only works if the cage is large)
 
-When dropping the large cage into the bin, the bin must be closed before heading back home
+Program will not allow user to move to bin before opening the bin
+Program will not allow user to move away from bin before closing the bin
 '''
 
 def move_effector(arm: qarm, pos: list) -> None:

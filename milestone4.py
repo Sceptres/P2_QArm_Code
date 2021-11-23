@@ -207,8 +207,10 @@ def get_autoclave(arm: qarm, cage_id: int) -> autoclave_sim:
     
     if cage_id % 3 == 1: # Is the cage red?
         return arm.red_autoclave
+
     elif cage_id % 3 == 2: # Is the cage Green?
         return arm.green_autoclave
+        
     elif cage_id % 3 == 0: # Is the cage Blue?
         return arm.blue_autoclave
 
@@ -272,9 +274,11 @@ def handle_move_effector(arm: qarm, is_autoclave_open: bool, has_cage: bool, was
         face_autoclave(arm, cage_id)
         time.sleep(1)
         move_effector(arm, get_home_pos())
+
     elif not has_cage and not was_cage_delivered: # Is the cage not collected yet?
         # Move to pickup
         move_effector(arm, get_pickup_pos(cage_id)) 
+        
     elif not is_at_pos(arm, get_autoclave_pos(cage_id)): # Was the cage collected?
         
         if is_large(cage_id) and not is_autoclave_open: return None

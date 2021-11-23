@@ -1,3 +1,10 @@
+'''
+Authors:
+    1. Abdallah Alqashqish
+    2. Brian Zhang
+    3. Jaskeerat Sandhu
+'''
+
 import time
 import sys
 from random import randint

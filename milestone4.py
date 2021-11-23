@@ -118,7 +118,7 @@ def generate_cage_id(arm: qarm, collected_cages: list) -> int:
     for i in collected_cages:
         possible_cages.remove(i)
 
-    return choice(possible_cages)
+    return choice(possible_cages) if not (len(possible_cages) == 0) else -1
 
 
 def get_pickup_pos(cage_id: int) -> list:

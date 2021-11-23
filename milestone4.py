@@ -96,11 +96,23 @@ def is_large(cage_id: int) -> bool:
         arm: The QArm instance
         cage_id: The id of the cage
 
-    Return: True -> If the cage has an id in the range [4, 6], ie large size
+    Return: True -> If the cage has an id in the range [4, 6]; ie large size
             False otherwise
     '''
     
     return cage_id >= 4 and cage_id <= 6
+
+
+def is_valid_id(cage_id: int) -> bool:
+    '''
+    Input:
+        cage_id: The id of the cage
+
+    Return: True -> If the id is valid; ie in the range [1, 6]
+            False otherwise
+    '''
+
+    return cage_id <= 6 and cage_id >= 1
 
 
 def generate_cage_id(arm: qarm, collected_cages: list) -> int:
@@ -204,13 +216,16 @@ def get_autoclave(arm: qarm, cage_id: int) -> autoclave_sim:
 
     Return: The instance of the autoclave of the cage
     '''
+
+    if not is_valid_id(cage_id):
+        return None
     
-    if cage_id % 3 == 1: # Is the cage red?
+    elif cage_id % 3 == 1: # Is the cage red?
         return arm.red_autoclave
 
     elif cage_id % 3 == 2: # Is the cage Green?
         return arm.green_autoclave
-        
+
     elif cage_id % 3 == 0: # Is the cage Blue?
         return arm.blue_autoclave
 
@@ -352,7 +367,7 @@ def handle_input(arm: qarm) -> None:
             # Spawn the new cage when arm is back at home
             if is_at_pos(arm, get_home_pos()):
                 cage_id = generate_cage_id(arm, collected_cages)
-                if cage_id != -1: arm.spawn_cage(cage_id)
+                if is_valid_id(cage_id): arm.spawn_cage(cage_id)
 
                 was_cage_delivered = False
 

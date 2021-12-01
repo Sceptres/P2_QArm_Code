@@ -21,7 +21,7 @@ def move_effector(arm: qarm, pos: list) -> None:
         arm: The Q-Arm instance
         pos: An array with the requested position. Format: [X, Y, Z]
 
-    Moves the arm end effector to pos
+    Moves the arm end effector to pos XYZ coordinates
     '''
     arm.move_arm(pos[0], pos[1], pos[2])
     time.sleep(1)
@@ -33,7 +33,7 @@ def control_gripper(arm: qarm, should_close: bool) -> None:
         arm: The QArm instance
         should_close: A bool representing whether the gripper should open/close
 
-    Opens/Closes the gripper
+    Opens/Closes the gripper accordingly
     '''
     
     arm.control_gripper(40 if should_close else -40)
@@ -92,9 +92,10 @@ def is_valid_id(cage_id: int) -> bool:
 def generate_cage_id(collected_cages: list) -> int:
     '''
     Input:
-        collected_cages: The collected cages
+        collected_cages: A list with the id's of the collected cages
 
-    Return: The id of the new cage
+    Return: The id of the new cage if there are still cages to be processed
+            -1 if all cages have been processed
     '''
     
     possible_cages = [1, 2, 3, 4, 5, 6]
@@ -103,6 +104,7 @@ def generate_cage_id(collected_cages: list) -> int:
     for i in collected_cages:
         possible_cages.remove(i)
 
+    # Return random cage id if there are any cages not processed
     return choice(possible_cages) if not (len(possible_cages) == 0) else -1
 
 
@@ -112,8 +114,8 @@ def get_pickup_pos(cage_id: int) -> list:
     Input:
         cage_id: The id of the cage
 
-    Return: the position to pickup the cage.
-            Depends on the size of the cage.
+    Return: If the cage is large -> [0.52, 0, 0.037]
+            If the cage is small -> [0.453, 0.0, 0.036]
                  
     '''
 
@@ -131,18 +133,20 @@ def get_pickup_pos(cage_id: int) -> list:
     
     return switcher.get(size, get_home_pos())
 
+
 def get_home_pos() -> list:
     '''
     Return: The home position of the arm
     '''
     return [0.406, 0, 0.483]
 
+
 def get_autoclave_pos(cage_id: int) -> list:
     '''
     Input:
         cage_id: The id of the cage
 
-    Return: The appropriate drop off position 
+    Return: The appropriate autoclave drop off position 
     '''
 
     switcher = {
@@ -174,7 +178,7 @@ def control_autoclave_bin(arm: qarm, cage_id: int, should_open: bool) -> None:
         # Get appropriate autoclave
         autoclave = get_autoclave(arm, cage_id)
 
-        # Open/Close autoclave
+        # Open/Close autoclave bin to maximum length
         for _ in range(2):
             autoclave.open_drawer(should_open)
             time.sleep(1)
@@ -243,6 +247,7 @@ def handle_open_autoclave(arm: qarm, is_autoclave_open: bool, cage_id: int) -> b
         # Return new autoclave state
         return should_open
 
+    # Otherwise return initial autoclave status
     return is_autoclave_open
 
 
@@ -260,6 +265,7 @@ def handle_move_effector(arm: qarm, is_autoclave_open: bool, has_cage: bool, was
     '''
 
     if arm.emg_right() >= 1 and arm.emg_left() < 1: # Should the effector move to position
+
         if was_cage_delivered and not is_autoclave_open: # Was the cage delivered?
             # Move back home from autoclave drop position
             face_autoclave(arm, cage_id)
@@ -295,8 +301,10 @@ def handle_gripper(arm: qarm, has_cage: bool) -> bool:
         cage_status = not has_cage
         control_gripper(arm, cage_status)
 
+        # Return new cage status
         return cage_status
 
+    # Otherwise return initial cage status
     return has_cage
     
 
@@ -321,10 +329,10 @@ def handle_input(arm: qarm) -> None:
     # Perform until all 6 cages have been processed
     while cage_id != -1:
 
-        # Update cade delivery status
+        # Update cage delivery status
         was_cage_delivered = is_at_pos(arm, get_autoclave_pos(cage_id)) and not has_cage
         
-        if arm.emg_right() < 1 and arm.emg_left() < 1: # Is the user idle
+        if arm.emg_right() < 1 and arm.emg_left() < 1: # Is the user idle?
             time.sleep(1.5)
 
         # Handle autoclave events
@@ -345,7 +353,7 @@ def handle_input(arm: qarm) -> None:
 
             # Spawn the new cage when arm is back at home
             if is_at_pos(arm, get_home_pos()):
-                # Generate new cage
+                # Spawn new cage
                 cage_id = generate_cage_id(collected_cages)
                 if is_valid_id(cage_id): arm.spawn_cage(cage_id)
 

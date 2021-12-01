@@ -203,9 +203,8 @@ def control_autoclave_bin(arm: qarm, cage_id: int, should_open: bool) -> None:
     Opens/Closes the appropriate autoclave according to should_open
     '''
     
-    # Quit if small cage
-    if is_small(cage_id): return None 
-    else:
+    # Only open if the cage is large
+    if is_large(cage_id):
         # Get appropriate autoclave
         autoclave = get_autoclave(arm, cage_id)
 

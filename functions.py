@@ -329,15 +329,15 @@ def handle_input(arm: qarm) -> None:
 
         # Handle autoclave events
         is_autoclave_open = handle_open_autoclave(arm, is_autoclave_open, cage_id)
-        time.sleep(1)
+        time.sleep(1.5)
 
         # Handle move effector events
         handle_move_effector(arm, is_autoclave_open, has_cage, was_cage_delivered, cage_id)
-        time.sleep(1)
+        time.sleep(1.5)
 
         # Handle gripper events
         has_cage = handle_gripper(arm, has_cage)
-        time.sleep(1)
+        time.sleep(1.5)
 
         if was_cage_delivered: # Was the cage delivered
             # Record newly processed cages 

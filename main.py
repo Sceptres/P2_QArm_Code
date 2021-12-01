@@ -32,16 +32,6 @@ update_thread = repeating_timer(2, update_sim)
 ## *******************************************
 
 '''
-cage_id is a number that represents the cage.
-    1 -> Small Red
-    2 -> Small Green
-    3 -> Small Blue
-    4 -> Large Red
-    5 -> Large Green
-    6 -> Large Blue
-'''
-
-'''
 How to control the QArm
 1. Flex only the right arm to move the effector
 2. Flex only the left arm to control the gripper

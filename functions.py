@@ -5,6 +5,16 @@ from Common_Libraries.p2_sim_lib import *
 
 import os
 
+'''
+cage_id is a number that represents the cage.
+    1 -> Small Red
+    2 -> Small Green
+    3 -> Small Blue
+    4 -> Large Red
+    5 -> Large Green
+    6 -> Large Blue
+'''
+
 def move_effector(arm: qarm, pos: list) -> None:
     '''
     Input:

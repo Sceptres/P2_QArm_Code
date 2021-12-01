@@ -338,9 +338,11 @@ def handle_input(arm: qarm) -> None:
 
             # Spawn the new cage when arm is back at home
             if is_at_pos(arm, get_home_pos()):
+                # Generate new cage
                 cage_id = generate_cage_id(collected_cages)
                 if is_valid_id(cage_id): arm.spawn_cage(cage_id)
 
+                # Reset cage delivery status
                 was_cage_delivered = False
 
 

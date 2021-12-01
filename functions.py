@@ -24,7 +24,6 @@ def move_effector(arm: qarm, pos: list) -> None:
     Moves the arm end effector to pos XYZ coordinates
     '''
     arm.move_arm(pos[0], pos[1], pos[2])
-    time.sleep(1)
 
 
 def control_gripper(arm: qarm, should_close: bool) -> None:

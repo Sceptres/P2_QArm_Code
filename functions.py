@@ -232,15 +232,18 @@ def handle_open_autoclave(arm: qarm, is_autoclave_open: bool, cage_id: int) -> b
             True -> If autoclave has been opened
             False -> If autoclave has been closed
     '''
-        
-    # Action to take according to current autoclave status
-    should_open = (not is_autoclave_open) and is_large(cage_id)
 
-    # Open/Close autoclave accordingly
-    control_autoclave_bin(arm, cage_id, should_open)
+    if arm.emg_right() >= 1 and arm.emg_left() >= 1: # Should autoclave open/close
+        # Action to take according to current autoclave status
+        should_open = (not is_autoclave_open) and is_large(cage_id)
 
-    # Return new autoclave state
-    return should_open
+        # Open/Close autoclave accordingly
+        control_autoclave_bin(arm, cage_id, should_open)
+
+        # Return new autoclave state
+        return should_open
+
+    return is_autoclave_open
 
 
 def handle_move_effector(arm: qarm, is_autoclave_open: bool, has_cage: bool, was_cage_delivered: bool, cage_id: int) -> None:
@@ -256,26 +259,27 @@ def handle_move_effector(arm: qarm, is_autoclave_open: bool, has_cage: bool, was
     according to its status
     '''
 
-    if was_cage_delivered and not is_autoclave_open: # Was the cage delivered?
-        # Move back home from autoclave drop position
-        face_autoclave(arm, cage_id)
-        time.sleep(1)
-        move_effector(arm, get_home_pos())
-
-    elif not has_cage and not was_cage_delivered: # Is the cage not collected yet?
-        # Move to pickup
-        move_effector(arm, get_pickup_pos(cage_id)) 
-        
-    elif not is_at_pos(arm, get_autoclave_pos(cage_id)): # Was the cage collected?
-        
-        # Should the arm move to drop position?
-        if not (is_large(cage_id) and not is_autoclave_open):
-            # Move to drop off
-            move_effector(arm, get_home_pos())
-            time.sleep(1)
+    if arm.emg_right() >= 1 and arm.emg_left() < 1: # Should the effector move to position
+        if was_cage_delivered and not is_autoclave_open: # Was the cage delivered?
+            # Move back home from autoclave drop position
             face_autoclave(arm, cage_id)
             time.sleep(1)
-            move_effector(arm, get_autoclave_pos(cage_id))
+            move_effector(arm, get_home_pos())
+
+        elif not has_cage and not was_cage_delivered: # Is the cage not collected yet?
+            # Move to pickup
+            move_effector(arm, get_pickup_pos(cage_id)) 
+            
+        elif not is_at_pos(arm, get_autoclave_pos(cage_id)): # Was the cage collected?
+            
+            # Should the arm move to drop position?
+            if not (is_large(cage_id) and not is_autoclave_open):
+                # Move to drop off
+                move_effector(arm, get_home_pos())
+                time.sleep(1)
+                face_autoclave(arm, cage_id)
+                time.sleep(1)
+                move_effector(arm, get_autoclave_pos(cage_id))
 
 
 def handle_gripper(arm: qarm, has_cage: bool) -> bool:
@@ -286,11 +290,14 @@ def handle_gripper(arm: qarm, has_cage: bool) -> bool:
 
     Return: The new status of cage acquisition
     '''
-    # Open/Close accordingly
-    cage_status = not has_cage
-    control_gripper(arm, cage_status)
+    if arm.emg_left() >= 1 and arm.emg_right() < 1: # Should the gripper hold/release the cage
+        # Open/Close accordingly
+        cage_status = not has_cage
+        control_gripper(arm, cage_status)
 
-    return cage_status
+        return cage_status
+
+    return has_cage
     
 
 def handle_input(arm: qarm) -> None:
@@ -319,18 +326,18 @@ def handle_input(arm: qarm) -> None:
         
         if arm.emg_right() < 1 and arm.emg_left() < 1: # Is the user idle
             time.sleep(1.5)
-            
-        elif arm.emg_right() >= 1 and arm.emg_left() >= 1: # Should autoclave open/close
-            is_autoclave_open = handle_open_autoclave(arm, is_autoclave_open, cage_id)
-            time.sleep(2)
-            
-        elif arm.emg_right() >= 1 and arm.emg_left() < 1: # Should the effector move to position
-            handle_move_effector(arm, is_autoclave_open, has_cage, was_cage_delivered, cage_id)
-            time.sleep(2)
-            
-        elif arm.emg_left() >= 1 and arm.emg_right() < 1: # Should the gripper hold/release the cage
-            has_cage = handle_gripper(arm, has_cage)
-            time.sleep(2)
+
+        # Handle autoclave events
+        is_autoclave_open = handle_open_autoclave(arm, is_autoclave_open, cage_id)
+        time.sleep(1)
+
+        # Handle move effector events
+        handle_move_effector(arm, is_autoclave_open, has_cage, was_cage_delivered, cage_id)
+        time.sleep(1)
+
+        # Handle gripper events
+        has_cage = handle_gripper(arm, has_cage)
+        time.sleep(1)
 
         if was_cage_delivered: # Was the cage delivered
             # Record newly processed cages 

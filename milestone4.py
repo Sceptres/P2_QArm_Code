@@ -126,7 +126,6 @@ def is_valid_id(cage_id: int) -> bool:
 def generate_cage_id(collected_cages: list) -> int:
     '''
     Input:
-        arm: The QArm instance
         collected_cages: The collected cages
 
     Return: The id of the new cage
@@ -351,7 +350,7 @@ def handle_input(arm: qarm) -> None:
     while cage_id != -1:
 
         # Update cade delivery status
-        was_cage_delivered = list(arm.effector_position()) == get_autoclave_pos(cage_id) and not has_cage
+        was_cage_delivered = is_at_pos(arm, get_autoclave_pos(cage_id)) and not has_cage
         
         if arm.emg_right() < 1 and arm.emg_left() < 1: # Is the user idle
             time.sleep(1.5)

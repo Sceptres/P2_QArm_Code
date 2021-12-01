@@ -5,15 +5,10 @@ Authors:
     3. Jaskeerat Sandhu
 '''
 
-import time
 import sys
-from random import randint
-from random import choice
 sys.path.append('../')
 
 from Common_Libraries.p2_sim_lib import *
-
-import os
 from Common_Libraries.repeating_timer_lib import repeating_timer
 
 from functions import run

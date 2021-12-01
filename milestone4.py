@@ -266,10 +266,9 @@ def handle_open_autoclave(arm: qarm, is_autoclave_open: bool, cage_id: int) -> b
             True -> If autoclave has been opened
             False -> If autoclave has been closed
     '''
-    if is_small(cage_id): return is_autoclave_open
-    
+        
     # Action to take according to current autoclave status
-    should_open = not is_autoclave_open
+    should_open = (not is_autoclave_open) and is_large(cage_id)
 
     # Open/Close autoclave accordingly
     control_autoclave_bin(arm, cage_id, should_open)
@@ -292,6 +291,7 @@ def handle_move_effector(arm: qarm, is_autoclave_open: bool, has_cage: bool, was
     '''
 
     if was_cage_delivered and not is_autoclave_open: # Was the cage delivered?
+        # Move back home from autoclave drop position
         face_autoclave(arm, cage_id)
         time.sleep(1)
         move_effector(arm, get_home_pos())

@@ -123,7 +123,7 @@ def is_valid_id(cage_id: int) -> bool:
     return cage_id <= 6 and cage_id >= 1
 
 
-def generate_cage_id(arm: qarm, collected_cages: list) -> int:
+def generate_cage_id(collected_cages: list) -> int:
     '''
     Input:
         arm: The QArm instance
@@ -344,7 +344,7 @@ def handle_input(arm: qarm) -> None:
     was_cage_delivered = False      # Cage delivery status
 
     # Spawn first cage
-    cage_id: int = generate_cage_id(arm, collected_cages)
+    cage_id: int = generate_cage_id(collected_cages)
     arm.spawn_cage(cage_id)
 
     # Perform until all 6 cages have been processed
@@ -374,7 +374,7 @@ def handle_input(arm: qarm) -> None:
 
             # Spawn the new cage when arm is back at home
             if is_at_pos(arm, get_home_pos()):
-                cage_id = generate_cage_id(arm, collected_cages)
+                cage_id = generate_cage_id(collected_cages)
                 if is_valid_id(cage_id): arm.spawn_cage(cage_id)
 
                 was_cage_delivered = False

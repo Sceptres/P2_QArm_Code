@@ -302,14 +302,14 @@ def handle_move_effector(arm: qarm, is_autoclave_open: bool, has_cage: bool, was
         
     elif not is_at_pos(arm, get_autoclave_pos(cage_id)): # Was the cage collected?
         
-        if is_large(cage_id) and not is_autoclave_open: return None
-        
-        # Move to drop off
-        move_effector(arm, get_home_pos())
-        time.sleep(1)
-        face_autoclave(arm, cage_id)
-        time.sleep(1)
-        move_effector(arm, get_autoclave_pos(cage_id))
+        # Should the arm move to drop position?
+        if not (is_large(cage_id) and not is_autoclave_open):
+            # Move to drop off
+            move_effector(arm, get_home_pos())
+            time.sleep(1)
+            face_autoclave(arm, cage_id)
+            time.sleep(1)
+            move_effector(arm, get_autoclave_pos(cage_id))
 
 
 def handle_gripper(arm: qarm, has_cage: bool) -> bool:

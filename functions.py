@@ -3,8 +3,6 @@ from random import choice
 
 from Common_Libraries.p2_sim_lib import *
 
-import os
-
 '''
 cage_id is a number that represents the cage.
     1 -> Small Red
